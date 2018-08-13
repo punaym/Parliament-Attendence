@@ -1,0 +1,87 @@
+---
+title: "Parliament insights"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr)
+library(ggplot2)
+
+parliament<- read.csv("C:/Users/Administrator/Desktop/Parliament attendence project/Parliament Attendenc data.csv")
+
+colnames(parliament)[colnames(parliament) == "ï..Name"]<-"Name"
+```
+
+Maximum MP's from state
+=====================================
+
+### State having maximum numbers of MP's
+
+```{r}
+# State having maximum numbers of MP's
+maxmp<-parliament %>% group_by(State) %>% summarise(Total=n(),na.rm=T) %>% arrange(-Total)
+
+
+#Barplot
+ggplot(maxmp,aes(x=reorder(State,-Total),y=Total,fill=State))+geom_histogram(stat = "identity") +theme_bw() + theme(axis.text.x = element_text(angle = 60,hjust = 1))+ ylim(0,100) + labs(title= "State with higest MP's",y="Number of MP's",x="States") + theme(plot.background = element_rect(fill="steelblue"),plot.margin = unit(c(0.5,0.5,0.5,0.5),"cm"))+ geom_text(aes(label=Total), position=position_dodge(width=0.9), vjust=-0.25)+ theme(legend.position = "")
+
+```
+
+Maximum Number of MP's
+=====================================
+
+### Top 10 parties with maximum number of MP's
+
+```{r}
+#Top 10 parties with maximum number of MP's
+
+maxparty<-parliament %>% group_by(Party)%>% summarise(Total=n()) %>% arrange(-Total) %>% head(10)
+
+
+ggplot(maxparty,aes(x=reorder(Party,-Total),y=Total,fill=Party))+geom_histogram(stat = "identity") +theme_bw() + theme(axis.text.x = element_text(angle = 60,hjust = 1))+ ylim(0,400)+ labs(y="Number of MP's",x="Parties") + theme(plot.background = element_rect(fill="steelblue"),plot.margin = unit(c(0.1,0.1,0.1,0.1),"cm"))+ geom_text(aes(label=Total), position=position_dodge(width=0.9), vjust=-0.25)+ theme(legend.position = "None")
+
+```
+
+Hard working MP's
+=====================================
+
+### Top 10 most hardworking and active MP's in parliament
+
+```{r}
+#top 10 most hardworking and active MP's in parliament
+
+parliament$Attendance.Percent=gsub("%","",x = parliament$Attendance.Percent)
+
+#Typecasting to numeric
+parliament$Attendance.Percent = as.numeric(parliament$Attendance.Percent)
+parliament$Debates.Total = as.numeric(parliament$Debates.Total)
+parliament$Questions.Asked = as.numeric(parliament$Questions.Asked)
+parliament$Private.Member.Bills = as.numeric(parliament$Private.Member.Bills)
+
+#Finding most active member
+hardworking<-parliament %>% mutate(Total = Attendance.Percent+Debates.Total+Questions.Asked+Private.Member.Bills) %>% arrange(-Total) %>% head(10)
+
+#ploting most active member in graph
+
+
+ggplot(hardworking,aes(x=reorder(Name,-Total),y=Total,fill=Party))+geom_histogram(stat = "identity") +theme_bw() +labs(title= "Most active and hard working MP's",y="Number of MP's",x="Names") + theme(plot.background = element_rect(fill="steelblue"),plot.margin = unit(c(0.1,0.1,0.1,0.1),"cm"))+ geom_text(aes(label=Total), position=position_dodge(width=0.9), vjust=0) + coord_polar()
+
+```
+
+Maximum win of BJP
+=====================================
+
+### Maximum number of constituency won by BJP MP's
+```{r}
+#Top 10 State in which maximum number of constituency won by BJP MP's
+
+bjpmax<-parliament %>% filter(Party == "Bharatiya Janata Party") %>% group_by(State) %>%  summarise(Total=n()) %>% arrange(-Total) %>% head(10)
+
+ggplot(bjpmax,aes(x=reorder(State,-Total),y=Total,fill=State))+geom_histogram(stat = "identity") +theme_bw() +labs(title= "BJP MP's won most constituency state wise",y="Number of constituency won",x="states") + ylim(0,100) +theme(axis.text.x = element_text(angle = 90,hjust = 1))+ theme(plot.background = element_rect(fill="orange1"),plot.margin = unit(c(0.1,0.1,0.1,0.1),"cm"))+ geom_text(aes(label=Total), position=position_dodge(width=0.9), vjust=-0.25)
+
+```
+
